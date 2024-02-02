@@ -20,8 +20,11 @@ const Sushi = struct {
     pub fn clone(self: Sushi) !Sushi {
         return self.from(self.data.allocator, self.data.items);
     }
-    //pub fn clone_str() []const u8 {}
-
+    pub fn clone_str(self: Sushi, alloc: std.mem.Allocator) ![]const u8 {
+        const cloned_array = try alloc.alloc(u8, self.data.items.len);
+        @memcpy(cloned_array, self.data.items);
+        return cloned_array;
+    }
     pub fn append(self: *Sushi, data: []const u8) !void {
         try self.data.appendSlice(data);
     }
@@ -73,7 +76,13 @@ const Sushi = struct {
         for (self_str[start..newlen], end..) |*char, i| char.* = self_str[i];
         self.data.items.len = newlen;
     }
-    //pub fn repeat(self: *Sushi, count: usize) {}
+    pub fn repeat(self: *Sushi, count: usize) !void {
+        for (count) |_| {
+            const cloned = try self.clone_str(self.data.allocator);
+            try self.append(cloned);
+            self.data.allocator.free(cloned);
+        }
+    }
     //pub fn replace(self: *Sushi, searchValue: []const u8, replaceValue: []const u8) void {}
     //pub fn reverse(self: *Sushi) void {}
     //pub fn split(self: Sushi, separator: []cconst u8) {}
@@ -124,23 +133,24 @@ const Sushi = struct {
     }
 };
 
-test "Core Test" {
+test "Main Utilities" {
     const alloc = std.testing.allocator;
     var str = try Sushi.from(alloc, "  !Chiissu!!Chiissu! ");
     defer str.free();
-    const expect = std.testing.expect;
+    const expt = std.testing.expect;
 
     str.trim();
     try str.append("Yes");
-    try expect(str.indexOf("Chiissu").? == 1);
-    try expect(str.lastIndexOf("Chiissu").? == 10);
-    try expect(str.includes("!!"));
-    try expect(!str.includes("BS"));
+    try expt(str.indexOf("Chiissu").? == 1);
+    try expt(str.lastIndexOf("Chiissu").? == 10);
+    try expt(str.includes("!!"));
+    try expt(!str.includes("BS"));
     str.toLowerCase();
-    try expect(str.eql("!chiissu!!chiissu!yes"));
+    try expt(str.startsWith("!chiissu"));
+    try expt(!str.startsWith("Fyb"));
     str.toUpperCase();
-    try expect(str.startsWith("!CHIIS"));
-    try expect(!str.startsWith("Fyb"));
-    try expect(str.endsWith("YES"));
-    try expect(!str.endsWith("NO"));
+    try expt(str.endsWith("YES"));
+    try expt(!str.endsWith("NO"));
+    try str.repeat(1);
+    try expt(str.eql("!CHIISSU!!CHIISSU!YES!CHIISSU!!CHIISSU!YES"));
 }
