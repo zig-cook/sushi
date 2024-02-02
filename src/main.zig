@@ -36,10 +36,11 @@ const Sushi = struct {
         return std.mem.eql(u8, self.to_str(), compare_str);
     }
     pub fn indexOf(self: Sushi, search_str: []const u8) ?usize {
-        const selfStr = self.to_str();
-        pos: for (0..selfStr.len - search_str.len + 1) |curr_i| {
+        const self_str = self.to_str();
+        if (self_str.len < search_str.len) return null;
+        pos: for (0..self_str.len - search_str.len + 1) |curr_i| {
             for (search_str, 0..) |check_char, check_i| {
-                if (check_char != selfStr[curr_i + check_i]) continue :pos;
+                if (check_char != self_str[curr_i + check_i]) continue :pos;
             }
             return curr_i;
         }
@@ -49,7 +50,17 @@ const Sushi = struct {
         const pos = self.indexOf(search_str);
         return pos != null;
     }
-    //pub fn lastIndexOf(self: Sushi, search_str: [] const u8) ?usize {}
+    pub fn lastIndexOf(self: Sushi, search_str: []const u8) ?usize {
+        const self_str = self.to_str();
+        if (self_str.len < search_str.len) return null;
+        pos: for (0..self_str.len - search_str.len + 1) |curr_i| {
+            for (search_str, 0..) |check_char, check_i| {
+                if (check_char != self_str[self_str.len - search_str.len - curr_i + check_i]) continue :pos;
+            }
+            return self_str.len - search_str.len - curr_i;
+        }
+        return null;
+    }
     //pub fn match(self: Sushi, search_regex: []const u8) []const u8 {}
     //pub fn padEnd(self: *Sushi, target_length: usize, pad_string: ?[]const u8) !void {}
     //pub fn padStart(self: *Sushi, target_length: usize, pad_string: ?[]const u8) !void {
@@ -85,18 +96,19 @@ const Sushi = struct {
 
 test "Core Test" {
     const alloc = std.testing.allocator;
-    var str = try Sushi.from(alloc, "Chiissu!!");
+    var str = try Sushi.from(alloc, "!Chiissu!!Chiissu!");
     defer str.free();
     const expect = std.testing.expect;
 
     try str.append("Yes");
-    try expect(str.indexOf("!!").? == 7);
+    try expect(str.indexOf("Chiissu").? == 1);
+    try expect(str.lastIndexOf("Chiissu").? == 10);
     try expect(str.includes("!!"));
     try expect(!str.includes("BS"));
     str.toLowerCase();
-    try expect(str.eql("chiissu!!yes"));
+    try expect(str.eql("!chiissu!!chiissu!yes"));
     str.toUpperCase();
-    try expect(str.startsWith("CHIIS"));
+    try expect(str.startsWith("!CHIIS"));
     try expect(!str.startsWith("Fyb"));
     try expect(str.endsWith("YES"));
     try expect(!str.endsWith("NO"));
