@@ -33,10 +33,10 @@ const Sushi = struct {
         return true;
     }
     pub fn eql(self: Sushi, compare_str: []const u8) bool {
-        return std.mem.eql(u8, self.to_str(), compare_str);
+        return std.mem.eql(u8, self.toStr(), compare_str);
     }
     pub fn indexOf(self: Sushi, search_str: []const u8) ?usize {
-        const self_str = self.to_str();
+        const self_str = self.toStr();
         if (self_str.len < search_str.len) return null;
         pos: for (0..self_str.len - search_str.len + 1) |curr_i| {
             for (search_str, 0..) |check_char, check_i| {
@@ -51,7 +51,7 @@ const Sushi = struct {
         return pos != null;
     }
     pub fn lastIndexOf(self: Sushi, search_str: []const u8) ?usize {
-        const self_str = self.to_str();
+        const self_str = self.toStr();
         if (self_str.len < search_str.len) return null;
         pos: for (0..self_str.len - search_str.len + 1) |curr_i| {
             for (search_str, 0..) |check_char, check_i| {
@@ -64,8 +64,18 @@ const Sushi = struct {
     //pub fn match(self: Sushi, search_regex: []const u8) []const u8 {}
     //pub fn padEnd(self: *Sushi, target_length: usize, pad_string: ?[]const u8) !void {}
     //pub fn padStart(self: *Sushi, target_length: usize, pad_string: ?[]const u8) !void {
+    pub fn remove(self: *Sushi, start: usize, end: usize) void {
+        if (start > end) return;
+        var self_str = self.data.items;
+        if (self_str.len < end) return;
+
+        const newlen = self_str.len - end + start;
+        for (self_str[start..newlen], end..) |*char, i| char.* = self_str[i];
+        self.data.items.len = newlen;
+    }
     //pub fn repeat(self: *Sushi, count: usize) {}
-    //pub fn replace(self: Str, searchValue: []const u8, replaceValue: []const u8) void {}
+    //pub fn replace(self: *Sushi, searchValue: []const u8, replaceValue: []const u8) void {}
+    //pub fn reverse(self: *Sushi) void {}
     //pub fn split(self: Sushi, separator: []cconst u8) {}
     pub fn startsWith(self: Sushi, search_str: []const u8) bool {
         if (self.data.items.len < search_str.len) return false;
@@ -74,7 +84,7 @@ const Sushi = struct {
         }
         return true;
     }
-    pub fn to_str(self: Sushi) []const u8 {
+    pub fn toStr(self: Sushi) []const u8 {
         return self.data.items;
     }
     pub fn toLowerCase(self: *Sushi) void {
@@ -89,17 +99,38 @@ const Sushi = struct {
             self.data.items[i] = char - 32;
         }
     }
-    //pub fn trim(self: Str) void {}
-    //pub fn trimEnd(self: Str) void {}
-    //pub fn trimStart(self: Str) void {}
+    pub fn trim(self: *Sushi) void {
+        self.trimEnd();
+        self.trimStart();
+    }
+    pub fn trimEnd(self: *Sushi) void {
+        var self_str = self.data.items;
+        if (self_str.len < 2) return;
+        for (0..self_str.len) |i| {
+            if (self_str[self_str.len - i - 1] != ' ') return;
+            _ = self.data.pop();
+        }
+    }
+    pub fn trimStart(self: *Sushi) void {
+        var self_str = self.data.items;
+        if (self_str.len < 2) return;
+        var trim_amount: usize = 0;
+        for (self_str) |char| {
+            if (char != ' ') break;
+            trim_amount += 1;
+        }
+        if (trim_amount == 0) return;
+        self.remove(0, trim_amount);
+    }
 };
 
 test "Core Test" {
     const alloc = std.testing.allocator;
-    var str = try Sushi.from(alloc, "!Chiissu!!Chiissu!");
+    var str = try Sushi.from(alloc, "  !Chiissu!!Chiissu! ");
     defer str.free();
     const expect = std.testing.expect;
 
+    str.trim();
     try str.append("Yes");
     try expect(str.indexOf("Chiissu").? == 1);
     try expect(str.lastIndexOf("Chiissu").? == 10);
