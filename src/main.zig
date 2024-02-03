@@ -53,6 +53,9 @@ const Sushi = struct {
         const pos = self.indexOf(search_str);
         return pos != null;
     }
+    pub fn insert(self: *Sushi, pos: usize, insert_str: []const u8) !void {
+        try self.data.insertSlice(pos, insert_str);
+    }
     pub fn lastIndexOf(self: Sushi, search_str: []const u8) ?usize {
         const self_str = self.toStr();
         if (self_str.len < search_str.len) return null;
@@ -64,13 +67,17 @@ const Sushi = struct {
         }
         return null;
     }
-    //pub fn match(self: Sushi, search_regex: []const u8) []const u8 {}
+    //pub fn match(self: Sushi, search_regex: []const u8) {}
     pub fn padEnd(self: *Sushi, count: usize, pad_string: []const u8) !void {
         for (count) |_| {
             try self.append(pad_string);
         }
     }
-    //pub fn padEnd(self: *Sushi, target_length: usize, pad_string: ?[]const u8) !void {}
+    pub fn padStart(self: *Sushi, count: usize, pad_string: []const u8) !void {
+        for (count) |_| {
+            try self.insert(0, pad_string);
+        }
+    }
     pub fn remove(self: *Sushi, start: usize, end: usize) void {
         if (start > end) return;
         var self_str = self.data.items;
@@ -90,6 +97,7 @@ const Sushi = struct {
     //pub fn replace(self: *Sushi, searchValue: []const u8, replaceValue: []const u8) void {}
     //pub fn reverse(self: *Sushi) void {}
     //pub fn split(self: Sushi, separator: []cconst u8) {}
+    //pub fn splitByRegex(self: Sushi, regex: []const u8) {}
     pub fn startsWith(self: Sushi, search_str: []const u8) bool {
         if (self.data.items.len < search_str.len) return false;
         for (search_str, 0..) |char, i| {
@@ -158,4 +166,6 @@ test "Main Utilities" {
     try str.padEnd(3, "LOL");
     try expt(str.endsWith("LOLLOLLOL"));
     try expt(!str.endsWith("NO"));
+    try str.padStart(2, "nvim");
+    try expt(str.startsWith("nvimnvim"));
 }
