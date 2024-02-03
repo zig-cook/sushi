@@ -95,7 +95,19 @@ const Sushi = struct {
         }
     }
     //pub fn replace(self: *Sushi, searchValue: []const u8, replaceValue: []const u8) void {}
-    //pub fn reverse(self: *Sushi) void {}
+    pub fn reverse(self: *Sushi) void {
+        var self_str = self.data.items;
+        var itr = self_str.len;
+        itr -= if ((itr & 1) == 0) 2 else 3;
+        itr = itr / 2;
+
+        for (0..itr) |i| {
+            const second_pos = self_str.len - i - 1;
+            const temp = self_str[i];
+            self_str[i] = self_str[second_pos];
+            self_str[second_pos] = temp;
+        }
+    }
     //pub fn split(self: Sushi, separator: []cconst u8) {}
     //pub fn splitByRegex(self: Sushi, regex: []const u8) {}
     pub fn startsWith(self: Sushi, search_str: []const u8) bool {
@@ -168,4 +180,6 @@ test "Main Utilities" {
     try expt(!str.endsWith("NO"));
     try str.padStart(2, "nvim");
     try expt(str.startsWith("nvimnvim"));
+    str.reverse();
+    try expt(str.endsWith("mivn"));
 }
