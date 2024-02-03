@@ -65,8 +65,12 @@ const Sushi = struct {
         return null;
     }
     //pub fn match(self: Sushi, search_regex: []const u8) []const u8 {}
+    pub fn padEnd(self: *Sushi, count: usize, pad_string: []const u8) !void {
+        for (count) |_| {
+            try self.append(pad_string);
+        }
+    }
     //pub fn padEnd(self: *Sushi, target_length: usize, pad_string: ?[]const u8) !void {}
-    //pub fn padStart(self: *Sushi, target_length: usize, pad_string: ?[]const u8) !void {
     pub fn remove(self: *Sushi, start: usize, end: usize) void {
         if (start > end) return;
         var self_str = self.data.items;
@@ -149,8 +153,9 @@ test "Main Utilities" {
     try expt(str.startsWith("!chiissu"));
     try expt(!str.startsWith("Fyb"));
     str.toUpperCase();
-    try expt(str.endsWith("YES"));
-    try expt(!str.endsWith("NO"));
     try str.repeat(1);
     try expt(str.eql("!CHIISSU!!CHIISSU!YES!CHIISSU!!CHIISSU!YES"));
+    try str.padEnd(3, "LOL");
+    try expt(str.endsWith("LOLLOLLOL"));
+    try expt(!str.endsWith("NO"));
 }
